@@ -2,77 +2,169 @@ package com.example.weatherly
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge // If you are using edge-to-edge
-import androidx.appcompat.app.AlertDialog // For the confirmation dialog
-import androidx.appcompat.app.AppCompatActivity
-// Make sure you have ViewBinding enabled in your build.gradle (Module :app)
-// buildFeatures { viewBinding = true }
-import com.example.weatherly.databinding.ActivityHomeBinding // Import ViewBinding class
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth // Firebase Kotlin extensions
-import com.google.firebase.ktx.Firebase
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.weatherly.ui.theme.WeatherlyTheme
+import com.google.firebase.auth.FirebaseUser // Keep this for the HomeScreen Composable signature
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityHomeBinding
-    private lateinit var auth: FirebaseAuth
+    private val homeViewModel: HomeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // If you are using edge-to-edge
 
-        binding = ActivityHomeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContent {
+            WeatherlyTheme {
+                // Collect the UI state from the ViewModel
+                val uiState by homeViewModel.uiState.collectAsState()
 
-        // Initialize Firebase Auth
-        auth = Firebase.auth
-
-        // Set up the logout button click listener
-        binding.logoutBtn.setOnClickListener {
-            showLogoutConfirmationDialog()
-        }
-
-        // You can update tvHelloWorld with user-specific info if needed
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            binding.tvHelloWorld.text = "Welcome, ${currentUser.email ?: "User"}!"
-        } else {
-            // This case should ideally not happen if HomeActivity is protected.
-            // If it does, redirect to LoginActivity.
-            redirectToLogin()
-        }
-    }
-
-    private fun showLogoutConfirmationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Logout")
-            .setMessage("Are you sure you want to log out?")
-            .setPositiveButton("Logout") { dialog, which ->
-                logoutUser()
+                // Check if the user is logged in based on the ViewModel's state
+                if (uiState.currentUser == null) {
+                    // Use LaunchedEffect for side effects like navigation that occur
+                    // due to state changes and should only run once per state change (or Unit for once on composition)
+                    LaunchedEffect(uiState.currentUser) { // Re-run if currentUser state changes to null
+                        redirectToLogin()
+                    }
+                } else {
+                    // Pass the necessary data from uiState to the HomeScreen
+                    HomeScreen(
+                        userDisplayName = uiState.userDisplayName, // Use processed name from ViewModel
+                        isLoading = uiState.isLoading, // Pass loading state if needed by UI
+                        onLogoutConfirmed = {
+                            homeViewModel.logout()
+                            // The LaunchedEffect above will handle redirection when uiState.currentUser becomes null
+                            // Or, if logout() in ViewModel doesn't immediately clear currentUser state
+                            // that the UI observes, you can call redirectToLogin() here as well.
+                            // For this setup, LaunchedEffect is cleaner.
+                        }
+                    )
+                }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun logoutUser() {
-        auth.signOut()
-
-        // Redirect to LoginActivity and clear back stack
-        redirectToLogin()
+        }
     }
 
     private fun redirectToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
-        // Clears the activity stack, so the user can't go back to HomeActivity after logging out.
+        // Clear the activity stack to prevent users from going back to HomeActivity after logout
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish() // Finish HomeActivity
     }
+}
 
-    // Optional: If you want to handle the Android back press to prevent going back to a logged-out state
-    // if something went wrong with activity stack clearing (though flags should handle it).
-    // override fun onBackPressed() {
-    //     super.onBackPressed() // Or handle it differently if needed, e.g., show exit confirmation
-    //     // For simple logout, the flags on intent are usually sufficient.
-    // }
+// --- HomeScreen and Dialog Composables ---
+// You can keep these in the same file or move them to a dedicated UI file (e.g., home/HomeScreenComposables.kt)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    userDisplayName: String,
+    isLoading: Boolean, // Example: to show a global loading indicator
+    onLogoutConfirmed: () -> Unit
+) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp), // Padding for the content column
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Welcome!",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = userDisplayName,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = { showLogoutDialog = true },
+                    modifier = Modifier.fillMaxWidth(0.7f),
+                    enabled = !isLoading // Disable button if something is loading globally
+                ) {
+                    Text("Logout")
+                }
+            }
+
+            if (isLoading) {
+                // Example of a global loading indicator for the screen
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }
+
+        if (showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onConfirmLogout = {
+                    showLogoutDialog = false
+                    onLogoutConfirmed()
+                },
+                onDismissDialog = {
+                    showLogoutDialog = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun LogoutConfirmationDialog(
+    onConfirmLogout: () -> Unit,
+    onDismissDialog: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissDialog,
+        title = { Text("Logout") },
+        text = { Text("Are you sure you want to log out?") },
+        confirmButton = {
+            TextButton(onClick = onConfirmLogout) {
+                Text("Logout")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissDialog) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// --- Previews ---
+@Preview(showBackground = true, name = "Home Screen Preview (Logged In)")
+@Composable
+fun HomeScreenLoggedInPreview() {
+    WeatherlyTheme {
+        HomeScreen(
+            userDisplayName = "user@example.com",
+            isLoading = false,
+            onLogoutConfirmed = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Home Screen Preview (Loading)")
+@Composable
+fun HomeScreenLoadingPreview() {
+    WeatherlyTheme {
+        HomeScreen(
+            userDisplayName = "user@example.com",
+            isLoading = true,
+            onLogoutConfirmed = {}
+        )
+    }
 }
