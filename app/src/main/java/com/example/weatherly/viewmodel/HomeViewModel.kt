@@ -1,7 +1,6 @@
-package com.example.weatherly
+package com.example.weatherly.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope // Ensure this import is present
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update // If you use .update { ... }
-import kotlinx.coroutines.launch // If you have suspend functions called from ViewModel
 
 // Define a UI state data class
 data class HomeUiState(

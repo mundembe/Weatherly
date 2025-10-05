@@ -1,8 +1,20 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val props = Properties()
+val propsFile = rootProject.file("local.properties")
+if (propsFile.exists()) {
+    props.load(FileInputStream(propsFile))
+}
+val openWeatherApiKey: String = props.getProperty("OPENWEATHER_API_KEY", "")
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
-    alias(libs.plugins.kotlin.compose) // Google services plugin
+    alias(libs.plugins.kotlin.compose)
+    kotlin("kapt")
 }
 
 android {
@@ -17,6 +29,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "OPENWEATHER_API_KEY", "\"$openWeatherApiKey\"")
+
     }
 
     buildTypes {
@@ -36,7 +51,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
-        viewBinding = true  // TODO remove after upgrading to compose
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -51,18 +66,16 @@ android {
 
 dependencies {
 
+    // Core and XML dependencies
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx) // Often used with Compose
-    //  For XML
-    // TODO delete this after upgrading to Compose
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    // End of XML dependencies
-    // Import the Compose BOM
+
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -71,27 +84,47 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
-    // Debug implementation for UI Tooling (Previews, Layout Inspector)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Glance (App Widgets)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
-    debugImplementation(libs.androidx.glance.appwidget.preview) // Uncomment if needed for previews
+    debugImplementation(libs.androidx.glance.appwidget.preview)
 
-
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.glide)
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+
+    // Retrofit + Gson
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android) // Corrected accessor
+
+    // Room
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
+
+    // Lifecycle / ViewModel
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    // Glide (image loading)
+    implementation(libs.glide.compose) // FIX: Replaced 'libs.glide' with the correct Compose dependency
+    kapt(libs.glide.compiler)
+
+    // Other Dependencies
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
 }
