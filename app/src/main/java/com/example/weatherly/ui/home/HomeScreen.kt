@@ -1,24 +1,34 @@
 package com.example.weatherly.ui.home
 
 
+
 import WeatherSection
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.example.weatherly.WeatherScreen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.weatherly.BuildConfig
 import com.example.weatherly.utils.Resource
+import com.example.weatherly.viewmodel.HomeViewModel
 import com.example.weatherly.viewmodel.WeatherViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     userDisplayName: String,
     isLoading: Boolean,
     onLogoutConfirmed: () -> Unit,
-    weatherViewModel: WeatherViewModel
+    weatherViewModel: WeatherViewModel,
+    // FIX: Add HomeViewModel and its state to the function signature
+    homeViewModel: HomeViewModel,
+    uiState: HomeUiState // Assuming HomeUiState is defined in your project
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var city by remember { mutableStateOf("Durban") }
@@ -39,7 +49,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top, // Changed to Top for better layout
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header
@@ -51,7 +61,6 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Weather Section
-                // FIX: Check the state and pass the correct data to WeatherSection
                 when (val state = weatherState) {
                     is Resource.Loading -> {
                         CircularProgressIndicator(modifier = Modifier.padding(16.dp))
@@ -73,20 +82,37 @@ fun HomeScreen(
                     }
                 }
 
+                // Use Spacer to push content below to the bottom
+                Spacer(modifier = Modifier.weight(1f))
 
-                Spacer(modifier = Modifier.height(32.dp))
+                // FIX: Moved gamification UI inside the main Column
+                // Gamification Section
+                uiState.message?.let {
+                    Text(it, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                Button(
+                    onClick = { homeViewModel.performDailyCheckIn() },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    enabled = !uiState.isCheckingIn
+                ) {
+                    Text(if (uiState.isCheckingIn) "Checking In..." else "Daily Check-In")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Logout Button
                 Button(
                     onClick = { showLogoutDialog = true },
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                    modifier = Modifier.fillMaxWidth(0.8f),
                     enabled = !isLoading
                 ) {
                     Text("Logout")
                 }
             }
 
-            if (isLoading) {
+            if (isLoading && !uiState.isCheckingIn) { // Prevent showing two spinners
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }

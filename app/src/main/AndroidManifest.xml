@@ -30,6 +30,7 @@
             android:name=".ui.home.HomeActivity"
             android:exported="false" >
         </activity>
+
     </application>
 
 </manifest>

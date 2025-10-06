@@ -102,7 +102,7 @@ dependencies {
     implementation(libs.converter.gson)
 
     // Coroutines
-    implementation(libs.kotlinx.coroutines.android) // Corrected accessor
+    implementation(libs.kotlinx.coroutines.android)
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -114,8 +114,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     // Glide (image loading)
-    implementation(libs.glide.compose) // FIX: Replaced 'libs.glide' with the correct Compose dependency
+    implementation(libs.glide.compose)
+    implementation(libs.glide.okhttp.integration)
     kapt(libs.glide.compiler)
+
+    // Coil (for rememberAsyncImagePainter) <-- ADD THIS IMPLEMENTATION
+    implementation(libs.coil.compose)
 
     // Other Dependencies
     implementation(libs.androidx.work.runtime.ktx)

@@ -24,7 +24,7 @@ import com.example.weatherly.viewmodel.HomeViewModel
 import com.example.weatherly.viewmodel.WeatherViewModel
 import com.example.weatherly.viewmodel.WeatherViewModelFactory
 
-class HomeActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val weatherViewModel: WeatherViewModel by viewModels {

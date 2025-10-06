@@ -22,6 +22,7 @@ composeBomVersion = "2025.06.00"
 navigationComposeVersion = "2.7.7"
 glance = "1.1.0"
 glideCompose = "1.0.0-beta01" # Added for Glide Compose
+glideOkhttp = "4.16.0" # Use the same version as your other Glide libraries
 
 # --- Updated and New Versions ---
 retrofit = "2.9.0"
@@ -36,6 +37,7 @@ glide = "4.16.0"
 kotlinKapt = "2.0.21"
 credentials = "1.3.0"  # Added for credentials
 googleid = "1.1.0"       # Added for googleid
+coil = "2.6.0"
 
 [libraries]
 # --- Existing libraries (some updated) ---
@@ -87,6 +89,9 @@ androidx-glance-material3 = { group = "androidx.glance", name = "glance-material
 androidx-glance-appwidget-preview = { group = "androidx.glance", name = "glance-appwidget-preview", version.ref = "glance" }
 # Glide Compose artifact
 glide-compose = { group = "com.github.bumptech.glide", name = "compose", version.ref = "glideCompose" }
+glide-okhttp-integration = { group = "com.github.bumptech.glide", name = "okhttp3-integration", version.ref = "glideOkhttp" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" } # <-- ADD THIS LINE
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

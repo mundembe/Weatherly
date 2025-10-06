@@ -1,6 +1,11 @@
 package com.example.weatherly.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.weatherly.data.repository.GamificationRepository
+import com.example.weatherly.ui.home.HomeUiState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -9,13 +14,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update // If you use .update { ... }
+import kotlinx.coroutines.launch
 
-// Define a UI state data class
-data class HomeUiState(
-    val currentUser: FirebaseUser? = null,
-    val isLoading: Boolean = false, // Example: for fetching additional profile data
-    val userDisplayName: String = "User" // Example: a processed display name
-)
+//// Define a UI state data class
+//data class HomeUiState(
+//    val currentUser: FirebaseUser? = null,
+//    val isLoading: Boolean = false, // Example: for fetching additional profile data
+//    val userDisplayName: String = "User" // Example: a processed display name
+//)
 
 class HomeViewModel : ViewModel() {
     private val auth: FirebaseAuth = Firebase.auth
@@ -24,6 +30,11 @@ class HomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     // Public StateFlow that is read-only from the outside
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val gamificationRepo = GamificationRepository()
+
+//    var uiState = androidx.compose.runtime.mutableStateOf(HomeUiState())
+//        private set
 
     init {
         // Initialize the state with the current user
@@ -58,6 +69,47 @@ class HomeViewModel : ViewModel() {
     //         }
     //     }
     // }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun performDailyCheckIn() {
+        viewModelScope.launch {
+            // FIX: Use the thread-safe '.update' function on the private '_uiState'.
+            _uiState.update { it.copy(isCheckingIn = true) }
+
+            when (val result = gamificationRepo.checkIn()) {
+                is GamificationRepository.CheckInResult.Success -> {
+                    // FIX: Use '.update' to modify the state.
+                    _uiState.update {
+                        it.copy(
+                            isCheckingIn = false,
+                            message = "✅ Checked in! Streak: ${result.streak}",
+                            streak = result.streak,
+                            points = result.points,
+                            badges = result.badges
+                        )
+                    }
+                }
+                is GamificationRepository.CheckInResult.AlreadyCheckedIn -> {
+                    // FIX: Use '.update' to modify the state.
+                    _uiState.update {
+                        it.copy(
+                            isCheckingIn = false,
+                            message = "You’ve already checked in today!"
+                        )
+                    }
+                }
+                is GamificationRepository.CheckInResult.Error -> {
+                    // FIX: Use '.update' to modify the state.
+                    _uiState.update {
+                        it.copy(
+                            isCheckingIn = false,
+                            message = "❌ ${result.message}"
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     fun logout() {
         // Any pre-logout logic (e.g., clearing local caches managed by this ViewModel)
