@@ -66,8 +66,10 @@ fun HomeScreen(
                         CircularProgressIndicator(modifier = Modifier.padding(16.dp))
                     }
                     is Resource.Success -> {
+                        // FIX: Pass the entire weatherViewModel to the WeatherSection
                         WeatherSection(
                             weather = state.data,
+                            viewModel = weatherViewModel,
                             onRefresh = { weatherViewModel.fetchWeather(city) }
                         )
                     }

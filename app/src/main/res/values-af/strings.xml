@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Weatherly</string>
-    <string name="settings">Settings</string>
-    <string name="language">Language</string>
-    <string name="temperature_unit">Temperature Unit</string>
-    <string name="notifications">Enable Notifications</string>
+    <string name="settings">Instellings</string>
+    <string name="language">Taal</string>
+    <string name="temperature_unit">Temperatuureenheid</string>
+    <string name="notifications">Skakel kennisgewings aan</string>
     <string name="english">English</string>
     <string name="isizulu">isiZulu</string>
     <string name="afrikaans">Afrikaans</string>

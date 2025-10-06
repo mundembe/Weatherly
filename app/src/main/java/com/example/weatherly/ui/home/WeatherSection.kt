@@ -9,11 +9,13 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.weatherly.data.db.WeatherEntity
 import com.example.weatherly.utils.clothingSuggestion
+import com.example.weatherly.viewmodel.WeatherViewModel
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun WeatherSection(
     weather: WeatherEntity?,
+    viewModel: WeatherViewModel,
     onRefresh: () -> Unit
 ) {
     Column(
@@ -30,10 +32,13 @@ fun WeatherSection(
             }
         } else {
             Text(weather.city, style = MaterialTheme.typography.titleLarge)
-            Text("${weather.temperature}°C – ${weather.description}")
+            // FIX: Use the ViewModel to format the temperature
+            Text(
+                text = "${viewModel.formatTemperature(weather.temperature)} – ${weather.description}",
+                style = MaterialTheme.typography.bodyLarge
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Load weather icon
             GlideImage(
                 model = "https://openweathermap.org/img/wn/${weather.icon}@2x.png",
                 contentDescription = weather.description,
@@ -41,7 +46,7 @@ fun WeatherSection(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(clothingSuggestion(weather.temperature))
+            Text(clothingSuggestion(weather.temperature)) // This suggestion is still based on Celsius
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = onRefresh) {
                 Text("Refresh")

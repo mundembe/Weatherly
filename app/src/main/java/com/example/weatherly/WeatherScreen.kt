@@ -74,7 +74,7 @@ fun WeatherScreen(
                 )
 
                 Spacer(Modifier.height(8.dp))
-                Text(text = "${w.temperature}°C", style = MaterialTheme.typography.headlineSmall)
+                Text(text = viewModel.formatTemperature(w.temperature), style = MaterialTheme.typography.headlineSmall)
                 // Use recommended way to capitalize
                 Text(text = w.description.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }, style = MaterialTheme.typography.bodyLarge)
 

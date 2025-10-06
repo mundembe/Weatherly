@@ -1,19 +1,48 @@
-
 package com.example.weatherly.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application // <-- IMPORT THIS
+import androidx.lifecycle.AndroidViewModel // <-- IMPORT THIS and remove the standard ViewModel import
 import androidx.lifecycle.viewModelScope
 import com.example.weatherly.data.db.WeatherEntity
+import com.example.weatherly.data.repository.SettingsRepository
 import com.example.weatherly.data.repository.WeatherRepository
 import com.example.weatherly.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue // Add these if not already present
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
 
 class WeatherViewModel(
+    application: Application,
     private val repo: WeatherRepository,
     private val apiKey: String
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    private val settingsRepo =
+        SettingsRepository(application)
+    var tempUnit by mutableStateOf("Celsius")
+        private set
+
+    init {
+        viewModelScope.launch {
+            settingsRepo.userSettings.collect { settings ->
+                tempUnit = settings.temperatureUnit
+            }
+        }
+    }
+
+    /** helper to format temp for UI **/
+    fun formatTemperature(tempInCelsius: Double): String {
+        return if (tempUnit == "Fahrenheit") {
+            val f = tempInCelsius * 9.0 / 5.0 + 32.0
+            String.format("%.1f°F", f)
+        } else {
+            String.format("%.1f°C", tempInCelsius)
+        }
+    }
 
     // Expose a StateFlow that emits Resource states
     private val _weatherState = MutableStateFlow<Resource<WeatherEntity>>(Resource.Loading)
@@ -39,3 +68,4 @@ class WeatherViewModel(
         }
     }
 }
+

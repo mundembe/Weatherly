@@ -1,4 +1,4 @@
-package com.example.weatherly.model
+package com.example.weatherly.data.datastore
 
 data class UserSettings(
     val language: String = "en",

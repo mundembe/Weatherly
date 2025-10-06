@@ -1,56 +1,64 @@
 package com.example.weatherly.ui.settings
 
+import android.app.Activity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherly.utils.LocaleManager
 import com.example.weatherly.viewmodel.SettingsViewModel
+import com.example.weatherly.viewmodel.SettingsViewModelFactory
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
+fun SettingsScreen(
+    // FIX: Provide the factory to the viewModel() function
+    viewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(LocalContext.current)
+    )
+) {
     val settings by viewModel.userSettings.collectAsState()
+    val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
+    Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(16.dp))
 
-        // Language selector
+        // 🌍 Language Selector
         Text("Language", style = MaterialTheme.typography.titleMedium)
         DropdownSetting(
             current = settings.language,
-            options = listOf("en" to "English", "zu" to "isiZulu", "af" to "Afrikaans"),
-            onSelect = { lang ->
-                viewModel.updateLanguage(lang)
-            }
-        )
+            options = listOf("en" to "English", "zu" to "isiZulu", "af" to "Afrikaans")
+        ) { lang ->
+            viewModel.updateLanguage(lang)
+            LocaleManager.setLocale(context, lang)
+            (context as? Activity)?.recreate()
+        }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
-        // Temperature unit selector
+        // 🌡 Temperature Unit Selector
         Text("Temperature Unit", style = MaterialTheme.typography.titleMedium)
         DropdownSetting(
             current = settings.temperatureUnit,
-            options = listOf("Celsius" to "Celsius", "Fahrenheit" to "Fahrenheit"),
-            onSelect = { unit ->
-                viewModel.updateTemperatureUnit(unit)
-            }
-        )
+            options = listOf("Celsius" to "°C", "Fahrenheit" to "°F")
+        ) { unit ->
+            viewModel.updateTemperatureUnit(unit)
+        }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
-        // Notifications toggle
-        Text("Notifications", style = MaterialTheme.typography.titleMedium)
-        Switch(
-            checked = settings.notificationsEnabled,
-            onCheckedChange = { viewModel.updateNotifications(it) }
-        )
+        // 🔔 Notifications Toggle
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Enable Notifications", Modifier.weight(1f))
+            Switch(
+                checked = settings.notificationsEnabled,
+                onCheckedChange = { viewModel.updateNotifications(it) }
+            )
+        }
     }
 }
 
@@ -62,21 +70,23 @@ fun DropdownSetting(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box {
-        Button(onClick = { expanded = true }) {
-            Text(options.firstOrNull { it.first == current }?.second ?: current)
-        }
-
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { (code, name) ->
-                DropdownMenuItem(
-                    text = { Text(name) },
-                    onClick = {
-                        onSelect(code)
-                        expanded = false
-                    }
-                )
+    Column {
+        Box {
+            TextButton(onClick = { expanded = !expanded }) {
+                Text(options.firstOrNull { it.first == current }?.second ?: current)
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (value, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            expanded = false
+                            onSelect(value)
+                        }
+                    )
+                }
             }
         }
     }
 }
+

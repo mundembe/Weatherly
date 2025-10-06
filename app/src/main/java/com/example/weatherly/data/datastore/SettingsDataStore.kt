@@ -7,13 +7,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
 
 // Create a singleton DataStore instance
-val Context.dataStore by preferencesDataStore(name = "user_settings")
-
-data class UserSettings(
-    val language: String = "en",
-    val temperatureUnit: String = "Celsius",
-    val notificationsEnabled: Boolean = true
-)
+private val Context.dataStore by preferencesDataStore(name = "user_settings")
 
 class SettingsDataStore(private val context: Context) {
 
