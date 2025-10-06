@@ -10,11 +10,15 @@ import com.example.weatherly.ui.theme.WeatherlyTheme
 import com.example.weatherly.viewmodel.HomeViewModel
 import com.example.weatherly.viewmodel.WeatherViewModel
 import com.example.weatherly.LoginActivity
+import com.example.weatherly.viewmodel.WeatherViewModelFactory
 
 class HomeActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
-    private val weatherViewModel: WeatherViewModel by viewModels()
+    // FIX: Use the factory to create the WeatherViewModel
+    private val weatherViewModel: WeatherViewModel by viewModels {
+        WeatherViewModelFactory(application)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
