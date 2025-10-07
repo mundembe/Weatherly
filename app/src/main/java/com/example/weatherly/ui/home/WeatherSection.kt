@@ -11,6 +11,7 @@ import com.example.weatherly.data.db.WeatherEntity
 import com.example.weatherly.utils.clothingSuggestion
 import com.example.weatherly.viewmodel.WeatherViewModel
 
+// ToDo: This seems like a duplicate file of WeatherScreen. Remove it when safe.
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun WeatherSection(

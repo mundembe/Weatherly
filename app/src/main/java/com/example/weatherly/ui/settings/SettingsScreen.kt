@@ -7,8 +7,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherly.R
 import com.example.weatherly.utils.LocaleManager
 import com.example.weatherly.viewmodel.SettingsViewModel
 import com.example.weatherly.viewmodel.SettingsViewModelFactory
@@ -23,15 +25,24 @@ fun SettingsScreen(
     val settings by viewModel.userSettings.collectAsState()
     val context = LocalContext.current
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Settings", style = MaterialTheme.typography.headlineSmall)
+    Column(Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        // FIX: Use stringResource for the title
+        Text(stringResource(R.string.settings), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(16.dp))
 
         // 🌍 Language Selector
-        Text("Language", style = MaterialTheme.typography.titleMedium)
+        // FIX: Use stringResource for the section title
+        Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
         DropdownSetting(
             current = settings.language,
-            options = listOf("en" to "English", "zu" to "isiZulu", "af" to "Afrikaans")
+            // FIX: Use stringResource for labels
+            options = listOf(
+                "en" to stringResource(R.string.english),
+                "zu" to stringResource(R.string.isizulu),
+                "af" to stringResource(R.string.afrikaans)
+            )
         ) { lang ->
             viewModel.updateLanguage(lang)
             LocaleManager.setLocale(context, lang)
@@ -41,10 +52,13 @@ fun SettingsScreen(
         Spacer(Modifier.height(16.dp))
 
         // 🌡 Temperature Unit Selector
-        Text("Temperature Unit", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.temperature_unit), style = MaterialTheme.typography.titleMedium)
         DropdownSetting(
             current = settings.temperatureUnit,
-            options = listOf("Celsius" to "°C", "Fahrenheit" to "°F")
+            options = listOf(
+                "Celsius" to stringResource(R.string.celsius),
+                "Fahrenheit" to stringResource(R.string.fahrenheit)
+            )
         ) { unit ->
             viewModel.updateTemperatureUnit(unit)
         }
@@ -53,7 +67,8 @@ fun SettingsScreen(
 
         // 🔔 Notifications Toggle
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Enable Notifications", Modifier.weight(1f))
+            // FIX: Use stringResource for the label
+            Text(stringResource(R.string.notifications), Modifier.weight(1f))
             Switch(
                 checked = settings.notificationsEnabled,
                 onCheckedChange = { viewModel.updateNotifications(it) }
@@ -70,21 +85,20 @@ fun DropdownSetting(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column {
-        Box {
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(options.firstOrNull { it.first == current }?.second ?: current)
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                options.forEach { (value, label) ->
-                    DropdownMenuItem(
-                        text = { Text(label) },
-                        onClick = {
-                            expanded = false
-                            onSelect(value)
-                        }
-                    )
-                }
+    Box {
+        TextButton(onClick = { expanded = true }) {
+            // Display the translated label corresponding to the current key
+            Text(options.firstOrNull { it.first == current }?.second ?: current)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { (value, label) ->
+                DropdownMenuItem(
+                    text = { Text(label) }, // `label` is already translated
+                    onClick = {
+                        expanded = false
+                        onSelect(value) // `value` is the key (e.g., "en", "zu")
+                    }
+                )
             }
         }
     }

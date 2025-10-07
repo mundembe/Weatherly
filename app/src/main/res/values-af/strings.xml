@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Weatherly</string>
+    <string name="home">Tuis</string>
+    <string name="profile">Profiel</string>
     <string name="settings">Instellings</string>
     <string name="language">Taal</string>
     <string name="temperature_unit">Temperatuureenheid</string>

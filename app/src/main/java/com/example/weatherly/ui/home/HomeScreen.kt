@@ -1,10 +1,10 @@
 package com.example.weatherly.ui.home
 
-
-
-import WeatherSection
+// TODO: REMOVE this import as it's no longer used
+// import WeatherSection
 import android.os.Build
 import androidx.annotation.RequiresApi
+// ADD this import for the correct screen
 import com.example.weatherly.WeatherScreen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -26,16 +26,16 @@ fun HomeScreen(
     isLoading: Boolean,
     onLogoutConfirmed: () -> Unit,
     weatherViewModel: WeatherViewModel,
-    // FIX: Add HomeViewModel and its state to the function signature
     homeViewModel: HomeViewModel,
-    uiState: HomeUiState // Assuming HomeUiState is defined in your project
+    uiState: HomeUiState
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var city by remember { mutableStateOf("Durban") }
+    // The default city is now managed by the ViewModel, so this is not needed here
+    // var city by remember { mutableStateOf("Durban") }
 
-    // Fetch weather on first load
+    // Fetch weather on first load using the default city from the ViewModel
     LaunchedEffect(Unit) {
-        weatherViewModel.fetchWeather(city)
+        weatherViewModel.fetchWeather()
     }
 
     val weatherState by weatherViewModel.weatherState.collectAsState()
@@ -49,7 +49,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.Top, // Changed to Top for better layout
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header
@@ -60,34 +60,16 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Weather Section
-                when (val state = weatherState) {
-                    is Resource.Loading -> {
-                        CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-                    }
-                    is Resource.Success -> {
-                        // FIX: Pass the entire weatherViewModel to the WeatherSection
-                        WeatherSection(
-                            weather = state.data,
-                            viewModel = weatherViewModel,
-                            onRefresh = { weatherViewModel.fetchWeather(city) }
-                        )
-                    }
-                    is Resource.Error -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Error: ${state.message}", style = MaterialTheme.typography.bodyLarge)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = { weatherViewModel.fetchWeather(city) }) {
-                                Text("Retry")
-                            }
-                        }
-                    }
-                }
+                // --- FIX: Replace WeatherSection with WeatherScreen ---
+                WeatherScreen(
+                    viewModel = weatherViewModel,
+                    onRetry = { weatherViewModel.fetchWeather() }
+                )
+                // --- End of Fix ---
 
                 // Use Spacer to push content below to the bottom
                 Spacer(modifier = Modifier.weight(1f))
 
-                // FIX: Moved gamification UI inside the main Column
                 // Gamification Section
                 uiState.message?.let {
                     Text(it, style = MaterialTheme.typography.bodyMedium)
@@ -114,7 +96,7 @@ fun HomeScreen(
                 }
             }
 
-            if (isLoading && !uiState.isCheckingIn) { // Prevent showing two spinners
+            if (isLoading && !uiState.isCheckingIn) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
