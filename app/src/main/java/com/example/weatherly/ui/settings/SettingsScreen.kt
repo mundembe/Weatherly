@@ -1,6 +1,11 @@
 package com.example.weatherly.ui.settings
 
+import android.Manifest
 import android.app.Activity
+import android.app.Application
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,13 +22,24 @@ import com.example.weatherly.viewmodel.SettingsViewModelFactory
 
 @Composable
 fun SettingsScreen(
-    // FIX: Provide the factory to the viewModel() function
+    // The factory now requires application context. LocalContext.current.applicationContext works perfectly.
     viewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(LocalContext.current)
+        factory = SettingsViewModelFactory(LocalContext.current.applicationContext as Application)
     )
 ) {
     val settings by viewModel.userSettings.collectAsState()
     val context = LocalContext.current
+    // --- FIX: Add permission launcher ---
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                // Permission granted, now enable notifications in ViewModel
+                viewModel.updateNotifications(true)
+            }
+            // Optional: TODO: Handle the case where the user denies the permission
+        }
+    )
 
     Column(Modifier
         .fillMaxSize()
@@ -67,11 +83,23 @@ fun SettingsScreen(
 
         // 🔔 Notifications Toggle
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // FIX: Use stringResource for the label
             Text(stringResource(R.string.notifications), Modifier.weight(1f))
             Switch(
                 checked = settings.notificationsEnabled,
-                onCheckedChange = { viewModel.updateNotifications(it) }
+                onCheckedChange = { isEnabled ->
+                    if (isEnabled) {
+                        // FIX: Request permission before enabling
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            // On older versions, no runtime permission is needed
+                            viewModel.updateNotifications(true)
+                        }
+                    } else {
+                        // If toggling off, just update the state
+                        viewModel.updateNotifications(false)
+                    }
+                }
             )
         }
     }
