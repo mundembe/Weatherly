@@ -1,10 +1,13 @@
-# 🌤️ Weatherly  
+![WhatsApp Image 2025-10-14 at 21 10 59_847cfc97](https://github.com/user-attachments/assets/7345dc3b-4953-4bc9-8a6f-b87aefd7665b)![WhatsApp Image 2025-10-14 at 21 10 59_72261b81](https://github.com/user-attachments/assets/d9b78832-299f-4b42-8525-640c7218152b)# 🌤️ Weatherly  
 **A Modern Weather & Lifestyle App built with Jetpack Compose + Firebase**
 
 ## 📱 **Overview**
 
 **Weatherly** is a weather and lifestyle app that provides **real-time weather forecasts**, **clothing suggestions**, and **multi-language support**.  
 It’s designed with **Material 3**, powered by **Firebase**, and optimized for **South African users** 🇿🇦.
+
+![WhatsApp Image 2025-10-14 at 21 10 59_23737831](https://github.com/user-attachments/assets/a07ee52d-3dfe-473f-ba1c-be59e51fd512)
+
 
 ---
 
@@ -94,6 +97,9 @@ Rounded cards with icons
 Animated dropdowns
 Notification permission handling
 Smooth transitions with AnimatedContent
+
+![WhatsApp Image 2025-10-14 at 21 10 59_847cfc97](https://github.com/user-attachments/assets/f1ad5d3f-aa3a-45a9-b6a1-4033487fea0a)
+
 
 🚀 Future Features
 
