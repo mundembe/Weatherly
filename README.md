@@ -100,8 +100,9 @@ Smooth transitions with AnimatedContent
 
 ![WhatsApp Image 2025-10-14 at 21 10 59_847cfc97](https://github.com/user-attachments/assets/f1ad5d3f-aa3a-45a9-b6a1-4033487fea0a)
 
+---
 
-🚀 Future Features
+🚀 **Future Features**
 
 🌙 Dark mode toggle
 
