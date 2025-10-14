@@ -1,4 +1,4 @@
-![WhatsApp Image 2025-10-14 at 21 10 59_847cfc97](https://github.com/user-attachments/assets/7345dc3b-4953-4bc9-8a6f-b87aefd7665b)![WhatsApp Image 2025-10-14 at 21 10 59_72261b81](https://github.com/user-attachments/assets/d9b78832-299f-4b42-8525-640c7218152b)# 🌤️ Weatherly  
+# 🌤️ Weatherly  
 **A Modern Weather & Lifestyle App built with Jetpack Compose + Firebase**
 
 ## 📱 **Overview**
