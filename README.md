@@ -72,6 +72,7 @@ Enable Auth, Firestore, and FCM in Firebase Console
 ---
 
 🧭 **Architecture**
+
 UI (Compose)
  ↓ observes
 ViewModel (StateFlow)
@@ -79,6 +80,7 @@ ViewModel (StateFlow)
 Repository (WeatherRepository, SettingsRepository)
  ↓ interacts with
 Local (Room, DataStore) + Remote (Retrofit, Firebase)
+
 ---
 ⚡ **Offline & Sync**
 
