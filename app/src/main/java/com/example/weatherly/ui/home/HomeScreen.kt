@@ -7,6 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -15,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherly.WeatherViewModelFactory
 import com.example.weatherly.data.model.WeatherData
+import com.example.weatherly.ui.weather.ActivityRecommendationCard
+import com.example.weatherly.ui.weather.ClothingRecommendationCard
 import com.example.weatherly.ui.weather.CurrentWeatherCard
 import com.example.weatherly.ui.weather.ForecastList
 import com.example.weatherly.ui.weather.ForecastToggle
@@ -40,7 +44,7 @@ fun HomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // 🔍 Search Bar
+        // Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = {
@@ -63,7 +67,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // 🔄 Main Weather State Handler
+        // Main Weather State Handler
         when (state) {
             is Resource.Loading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -108,6 +112,12 @@ fun HomeScreen(
                         formatTemperature = { viewModel.formatTemperature(it) }
                     )
                 }
+
+                // RECOMMENDATION CARDS
+                Spacer(Modifier.height(16.dp))
+                ClothingRecommendationCard(currentWeather = data.current)
+                Spacer(Modifier.height(8.dp))
+                ActivityRecommendationCard(currentWeather = data.current)
             }
         }
     }
