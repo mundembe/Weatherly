@@ -6,13 +6,12 @@ import android.app.Application
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,9 +20,14 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,7 +37,6 @@ import com.example.weatherly.viewmodel.SettingsViewModel
 import com.example.weatherly.viewmodel.SettingsViewModelFactory
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(
@@ -49,82 +52,99 @@ fun SettingsScreen(
         }
     )
 
-    // Screen fade-in animation
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(150)
         visible = true
     }
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { 40 }),
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { 40 })
-    ) {
-        Column(
+    // FIX: Wrap the screen content in a Box to layer the background image
+    Box(modifier = Modifier.fillMaxSize()) {
+        // --- ADDED: Background Image ---
+        Image(
+            painter = painterResource(id = R.drawable.background_settings), // Make sure you have this drawable
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop // Crop the image to fill the screen
+        )
+        // --- ADDED: Semi-transparent overlay for better text readability ---
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .alpha(0.4f) // Adjust transparency as needed
+        )
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { 40 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { 40 })
         ) {
-            Text(
-                text = stringResource(R.string.settings),
-                style = MaterialTheme.typography.headlineMedium
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface // Use a color that stands out on the image
+                )
 
-            // 🌍 Language Section
-            SettingCard(
-                icon = Icons.Default.LocationOn,
-                title = stringResource(R.string.language),
-                content = {
-                    DropdownSetting(
-                        current = settings.language,
-                        options = listOf(
-                            "en" to stringResource(R.string.english),
-                            "zu" to stringResource(R.string.isizulu),
-                            "af" to stringResource(R.string.afrikaans)
-                        )
-                    ) { lang ->
-                        viewModel.updateLanguage(lang)
-                        LocaleManager.setLocale(context, lang)
-                        (context as? Activity)?.recreate()
-                    }
-                }
-            )
-
-            // 🌡 Temperature Unit
-            SettingCard(
-                icon = Icons.Default.Star,
-                title = stringResource(R.string.temperature_unit),
-                content = {
-                    DropdownSetting(
-                        current = settings.temperatureUnit,
-                        options = listOf(
-                            "Celsius" to stringResource(R.string.celsius),
-                            "Fahrenheit" to stringResource(R.string.fahrenheit)
-                        )
-                    ) { unit -> viewModel.updateTemperatureUnit(unit) }
-                }
-            )
-
-            // 🔔 Notifications
-            SettingCard(
-                icon = Icons.Default.Notifications,
-                title = stringResource(R.string.notifications),
-                content = {
-                    Switch(
-                        checked = settings.notificationsEnabled,
-                        onCheckedChange = { isEnabled ->
-                            if (isEnabled) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                else
-                                    viewModel.updateNotifications(true)
-                            } else viewModel.updateNotifications(false)
+                // 🌍 Language Section
+                SettingCard(
+                    icon = Icons.Default.LocationOn,
+                    title = stringResource(R.string.language),
+                    content = {
+                        DropdownSetting(
+                            current = settings.language,
+                            options = listOf(
+                                "en" to stringResource(R.string.english),
+                                "zu" to stringResource(R.string.isizulu),
+                                "af" to stringResource(R.string.afrikaans)
+                            )
+                        ) { lang ->
+                            viewModel.updateLanguage(lang)
+                            LocaleManager.setLocale(context, lang)
+                            (context as? Activity)?.recreate()
                         }
-                    )
-                }
-            )
+                    }
+                )
+
+                // 🌡 Temperature Unit
+                SettingCard(
+                    icon = Icons.Default.Star,
+                    title = stringResource(R.string.temperature_unit),
+                    content = {
+                        DropdownSetting(
+                            current = settings.temperatureUnit,
+                            options = listOf(
+                                "Celsius" to stringResource(R.string.celsius),
+                                "Fahrenheit" to stringResource(R.string.fahrenheit)
+                            )
+                        ) { unit -> viewModel.updateTemperatureUnit(unit) }
+                    }
+                )
+
+                // 🔔 Notifications
+                SettingCard(
+                    icon = Icons.Default.Notifications,
+                    title = stringResource(R.string.notifications),
+                    content = {
+                        Switch(
+                            checked = settings.notificationsEnabled,
+                            onCheckedChange = { isEnabled ->
+                                if (isEnabled) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    else
+                                        viewModel.updateNotifications(true)
+                                } else viewModel.updateNotifications(false)
+                            }
+                        )
+                    }
+                )
+            }
         }
     }
 }
@@ -142,7 +162,8 @@ fun SettingCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        // FIX: Make cards semi-transparent to let the background show through
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f))
     ) {
         Row(
             modifier = Modifier

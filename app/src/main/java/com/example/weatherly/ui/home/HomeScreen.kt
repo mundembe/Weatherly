@@ -2,7 +2,10 @@ package com.example.weatherly.ui.home
 
 import android.app.Application
 import androidx.compose.animation.AnimatedVisibility
+// import androidx.compose.foundation.Image // No longer needed for background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -11,10 +14,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.example.weatherly.R
 import com.example.weatherly.WeatherViewModelFactory
 import com.example.weatherly.data.model.WeatherData
 import com.example.weatherly.ui.weather.ActivityRecommendationCard
@@ -25,7 +34,7 @@ import com.example.weatherly.ui.weather.ForecastToggle
 import com.example.weatherly.utils.Resource
 import com.example.weatherly.viewmodel.WeatherViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class) // FIX: Add ExperimentalGlideComposeApi
 @Composable
 fun HomeScreen(
     viewModel: WeatherViewModel = viewModel(
@@ -38,86 +47,114 @@ fun HomeScreen(
 
     var searchQuery by remember { mutableStateOf(TextFieldValue(cityQuery)) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
-        // Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                viewModel.updateCityQuery(it.text)
-            },
-            label = { Text("Search city") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
-        Button(
-            onClick = { viewModel.fetchWeather() },
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-            Spacer(Modifier.width(4.dp))
-            Text("Fetch")
+    // Determine the background dynamically based on the weather state
+    val backgroundDrawableId = when (val currentState = state) {
+        is Resource.Success -> {
+            val weatherId = currentState.data.current.weather.firstOrNull()?.id ?: 800
+            getBackgroundForWeather(weatherId = weatherId)
         }
+        else -> R.drawable.background_home // Default background for loading/error
+    }
 
-        Spacer(Modifier.height(16.dp))
+    // Use a Box to layer the background image behind the content
+    Box(modifier = Modifier.fillMaxSize()) {
+        // FIX: Replace Image with GlideImage to prevent memory crashes
+        GlideImage(
+            model = backgroundDrawableId,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-        // Main Weather State Handler
-        when (state) {
-            is Resource.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+        // Add a semi-transparent overlay to improve text readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.4f) // Adjust transparency (0.0f to 1.0f)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()) // Make the column scrollable
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                    viewModel.updateCityQuery(it.text)
+                },
+                label = { Text("Search city") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.fetchWeather() },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                Spacer(Modifier.width(4.dp))
+                Text("Search")
             }
 
-            is Resource.Error -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = (state as Resource.Error).message ?: "Unknown error",
-                        color = MaterialTheme.colorScheme.error
-                    )
+            Spacer(Modifier.height(16.dp))
+
+            // Main Weather State Handler
+            when (state) {
+                is Resource.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
 
-            is Resource.Success -> {
-                val data = (state as Resource.Success<WeatherData>).data
+                is Resource.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = (state as Resource.Error).message ?: "Unknown error",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
 
-                // 🌤 Current Weather Card
-                CurrentWeatherCard(
-                    data = data,
-                    formatTemperature = { viewModel.formatTemperature(it) }
-                )
+                is Resource.Success -> {
+                    val data = (state as Resource.Success<WeatherData>).data
 
-                Spacer(Modifier.height(16.dp))
-
-                // Toggle (Hourly / Daily)
-                ForecastToggle(
-                    selected = forecastType,
-                    onSelect = { viewModel.setForecastType(it) }
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                // Forecast List
-                val forecastList = viewModel.getFilteredForecast(data.forecast.list)
-
-                AnimatedVisibility(visible = forecastList.isNotEmpty()) {
-                    ForecastList(
-                        items = forecastList,
+                    // 🌤 Current Weather Card
+                    CurrentWeatherCard(
+                        data = data,
                         formatTemperature = { viewModel.formatTemperature(it) }
                     )
-                }
 
-                // RECOMMENDATION CARDS
-                Spacer(Modifier.height(16.dp))
-                ClothingRecommendationCard(currentWeather = data.current)
-                Spacer(Modifier.height(8.dp))
-                ActivityRecommendationCard(currentWeather = data.current)
+                    Spacer(Modifier.height(16.dp))
+
+                    // Toggle (Hourly / Daily)
+                    ForecastToggle(
+                        selected = forecastType,
+                        onSelect = { viewModel.setForecastType(it) }
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Forecast List
+                    val forecastList = viewModel.getFilteredForecast(data.forecast.list)
+
+                    AnimatedVisibility(visible = forecastList.isNotEmpty()) {
+                        ForecastList(
+                            items = forecastList,
+                            formatTemperature = { viewModel.formatTemperature(it) }
+                        )
+                    }
+
+                    // RECOMMENDATION CARDS
+                    Spacer(Modifier.height(16.dp))
+                    ClothingRecommendationCard(currentWeather = data.current)
+                    Spacer(Modifier.height(8.dp))
+                    ActivityRecommendationCard(currentWeather = data.current)
+                }
             }
         }
     }

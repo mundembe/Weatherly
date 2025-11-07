@@ -9,6 +9,7 @@ data class WeatherResponse(
 )
 
 data class WeatherInfo(
+    @SerializedName("id") val id: Int,
     @SerializedName("description") val description: String,
     @SerializedName("icon") val icon: String
 )
