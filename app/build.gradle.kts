@@ -55,7 +55,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+        // kotlinCompilerExtensionVersion = "1.5.15"
     }
     packaging {
         resources {
@@ -96,6 +96,10 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+
+    // Single Sign-on
+    implementation(libs.play.services.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Retrofit + Gson
     implementation(libs.retrofit)

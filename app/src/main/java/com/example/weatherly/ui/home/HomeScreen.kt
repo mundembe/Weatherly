@@ -66,7 +66,7 @@ fun HomeScreen(
                 // Header
                 item {
                     Text(
-                        text = "Welcome, $userDisplayName!",
+                        text = "Welcome $userDisplayName!",
                         style = MaterialTheme.typography.headlineSmall
                     )
                 }

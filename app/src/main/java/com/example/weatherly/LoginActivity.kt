@@ -1,20 +1,29 @@
 package com.example.weatherly
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -24,10 +33,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,19 +50,35 @@ import com.example.weatherly.ui.theme.WeatherlyTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-class LoginActivity : ComponentActivity() { // Changed to ComponentActivity
+class LoginActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
-    // Removed: private lateinit var binding: ActivityLoginBinding
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
 
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            // You need to get this web client ID from your google-services.json file
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
         setContent { // Use setContent for Compose
             WeatherlyTheme { // Apply your app's Compose theme
                 LoginScreen(
                     auth = auth,
+                    googleSignInClient = googleSignInClient, // Pass the client
+
                     onLoginSuccess = {
                         startActivity(Intent(this, HomeActivity::class.java))
                         finish()
@@ -79,6 +108,7 @@ class LoginActivity : ComponentActivity() { // Changed to ComponentActivity
 @Composable
 fun LoginScreen(
     auth: FirebaseAuth,
+    googleSignInClient: GoogleSignInClient, // Get the client
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
@@ -87,6 +117,38 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current // For Toasts or other context-dependent operations
+    val coroutineScope = rememberCoroutineScope()
+
+    // --- ADD: Launcher for the Google Sign-In activity ---
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)!!
+                    val idToken = account.idToken!!
+                    // Now, authenticate with Firebase
+                    isLoading = true
+                    coroutineScope.launch {
+                        try {
+                            val credential = GoogleAuthProvider.getCredential(idToken, null)
+                            auth.signInWithCredential(credential).await()
+                            onLoginSuccess()
+                        } catch (e: Exception) {
+                            errorMessage = e.localizedMessage ?: "Firebase authentication failed."
+                        } finally {
+                            isLoading = false
+                        }
+                    }
+                } catch (e: ApiException) {
+                    errorMessage = "Google Sign-In failed: ${e.localizedMessage}"
+                }
+            } else {
+                errorMessage = "Google Sign-In was cancelled or failed."
+            }
+        }
+    )
 
     Surface(modifier = Modifier.fillMaxSize()) { // A surface container using the 'background' color from the theme
         Column(
@@ -173,25 +235,44 @@ fun LoginScreen(
                 Text("Create Account")
             }
 
-            // TODO You can add the Google Sign-In Button later if needed.
-            // For now, let's keep it simple with email/password.
-            // Spacer(modifier = Modifier.height(16.dp))
-            // GoogleSignInButtonComposable() // You'd need to create this
+            // --- ADD: Google Sign-In Button and Divider ---
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Divider(modifier = Modifier.weight(1f))
+                Text(" OR ", modifier = Modifier.padding(horizontal = 8.dp))
+                Divider(modifier = Modifier.weight(1f))
+            }
+
+            Button(
+                onClick = {
+                    isLoading = true
+                    errorMessage = null
+                    val signInIntent = googleSignInClient.signInIntent
+                    googleSignInLauncher.launch(signInIntent)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                // Use different colors for branding
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+            ) {
+//                Icon(
+//                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_google_logo),
+//                    contentDescription = "Google Logo",
+//                    modifier = Modifier.size(24.dp),
+//                    tint = Color.Unspecified // Important for brand logos
+//                )
+//                Spacer(modifier = Modifier.width(12.dp))
+                Text("Sign in with Google")
+            }
         }
     }
 }
 
-// Basic Preview Function (Very useful for UI development)
-@Preview(showBackground = true, name = "Login Screen Preview")
-@Composable
-fun LoginScreenPreview() {
-    WeatherlyTheme {
-        // Create a dummy FirebaseAuth for previewing, or pass null if your Composable handles it
-        // For a non-interactive preview, you often don't need a real auth instance.
-        LoginScreen(
-            auth = Firebase.auth, // This will be a dummy for preview, won't actually sign in
-            onLoginSuccess = { },
-            onNavigateToRegister = { }
-        )
-    }
-}
+
