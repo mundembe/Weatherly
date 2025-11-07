@@ -20,6 +20,8 @@ It’s designed with **Material 3**, powered by **Firebase**, and optimized for 
 - Smart **clothing recommendations**
 - **Offline cache** using Room Database
 
+![IMG-20251108-WA0008](https://github.com/user-attachments/assets/cb66659e-3e01-4830-8fe0-a6c37ea03416)
+
 ### ⚙️ Settings
 - Change app language: 🇬🇧 English, 🇿🇦 isiZulu, 🇿🇦 Afrikaans  
 - Switch between Celsius ↔ Fahrenheit  
@@ -119,6 +121,6 @@ Smooth transitions with AnimatedContent
 Video Presantions: https://youtu.be/S3wU45MVwGs
 
 ![IMG-20251108-WA0007](https://github.com/user-attachments/assets/6de9f8f2-b615-49ff-a6a4-bd9e93bac5d8)
-![IMG-20251108-WA0008](https://github.com/user-attachments/assets/cb66659e-3e01-4830-8fe0-a6c37ea03416)
+
 ![IMG-20251108-WA0005](https://github.com/user-attachments/assets/da12ac56-5ce6-40ac-9f77-1fc96e264a97)
 
