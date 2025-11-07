@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.Glide
-import com.example.weatherly.data.repository.WeatherData
+import com.example.weatherly.data.model.WeatherData
 import com.example.weatherly.utils.Resource
 import com.example.weatherly.utils.clothingSuggestion
 import com.example.weatherly.viewmodel.WeatherViewModel
@@ -92,16 +92,16 @@ fun WeatherScreen(
                     }
                 }
                 is Resource.Success -> {
-                    // FIX: Extract the currentWeather from the WeatherData object
-                    val currentWeatherData = targetState.data.currentWeather
+                    // FIX: Changed 'currentWeather' to 'current' and use its properties
+                    val currentWeatherData = targetState.data.current
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(text = currentWeatherData.city, style = MaterialTheme.typography.headlineMedium)
+                        Text(text = currentWeatherData.name, style = MaterialTheme.typography.headlineMedium)
 
-                        val iconUrl = "https://openweathermap.org/img/wn/${currentWeatherData.icon}@4x.png"
+                        val iconUrl = "https://openweathermap.org/img/wn/${currentWeatherData.weather.firstOrNull()?.icon}@4x.png"
                         AndroidView(
                             factory = { ctx ->
                                 ImageView(ctx).apply {
@@ -118,17 +118,17 @@ fun WeatherScreen(
                         )
 
                         Text(
-                            text = viewModel.formatTemperature(currentWeatherData.temperature),
+                            text = viewModel.formatTemperature(currentWeatherData.main.temp),
                             style = MaterialTheme.typography.displaySmall
                         )
 
                         Text(
-                            text = currentWeatherData.description.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                            text = currentWeatherData.weather.firstOrNull()?.description?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } ?: "",
                             style = MaterialTheme.typography.titleLarge
                         )
 
                         Text(
-                            text = clothingSuggestion(currentWeatherData.temperature),
+                            text = clothingSuggestion(currentWeatherData.main.temp),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

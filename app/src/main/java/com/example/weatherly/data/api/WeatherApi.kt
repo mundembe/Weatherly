@@ -12,12 +12,10 @@ interface WeatherApi {
         @Query("units") units: String = "metric" // Celsius
     ): WeatherResponse
 
-    // --- NEW: Endpoint for fetching forecast data ---
-    @GET("onecall")
+    // Forecast
+    @GET("forecast")
     suspend fun getForecast(
-        @Query("lat") lat: Double,
-        @Query("lon") lon: Double,
-        @Query("exclude") exclude: String = "current,minutely,alerts",
+        @Query("q") city: String,
         @Query("appid") apiKey: String,
         @Query("units") units: String = "metric"
     ): ForecastResponse

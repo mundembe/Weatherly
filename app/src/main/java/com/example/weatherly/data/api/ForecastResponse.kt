@@ -4,33 +4,16 @@ import com.google.gson.annotations.SerializedName
 
 // Main response object
 data class ForecastResponse(
-    @SerializedName("hourly") val hourly: List<HourlyForecast>,
-    @SerializedName("daily") val daily: List<DailyForecast>
+    @SerializedName("list") val list: List<ForecastItem>,
+    @SerializedName("city") val city: City
 )
 
-// Data class for each hourly forecast item
-data class HourlyForecast(
-    @SerializedName("dt") val timestamp: Long,
-    @SerializedName("temp") val temp: Double,
+data class ForecastItem(
+    @SerializedName("dt_txt") val dateTime: String,
+    @SerializedName("main") val main: Main,
     @SerializedName("weather") val weather: List<WeatherInfo>
 )
 
-// Data class for each daily forecast item
-data class DailyForecast(
-    @SerializedName("dt") val timestamp: Long,
-    @SerializedName("temp") val temp: Temp,
-    @SerializedName("weather") val weather: List<WeatherInfo>
+data class City(
+    @SerializedName("name") val name: String
 )
-
-// Nested temperature object for daily forecast
-data class Temp(
-    @SerializedName("day") val day: Double,
-    @SerializedName("min") val min: Double,
-    @SerializedName("max") val max: Double
-)
-
-// Re-used from your existing API structure
-// data class WeatherInfo(
-//    val icon: String,
-//    val description: String
-// )
