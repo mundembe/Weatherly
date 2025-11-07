@@ -6,7 +6,8 @@
 **Weatherly** is a weather and lifestyle app that provides **real-time weather forecasts**, **clothing suggestions**, and **multi-language support**.  
 It’s designed with **Material 3**, powered by **Firebase**, and optimized for **South African users** 🇿🇦.
 
-![WhatsApp Image 2025-10-14 at 21 10 59_23737831](https://github.com/user-attachments/assets/a07ee52d-3dfe-473f-ba1c-be59e51fd512)
+![IMG-20251108-WA0009](https://github.com/user-attachments/assets/93b4b5f3-457a-4fd7-98bc-87822dc8d772)
+
 
 
 ---
@@ -23,7 +24,10 @@ It’s designed with **Material 3**, powered by **Firebase**, and optimized for 
 - Change app language: 🇬🇧 English, 🇿🇦 isiZulu, 🇿🇦 Afrikaans  
 - Switch between Celsius ↔ Fahrenheit  
 - Toggle daily weather notifications  
-- Animated Material 3 dropdowns and cards  
+- Animated Material 3 dropdowns and cards
+
+  ![IMG-20251108-WA0004](https://github.com/user-attachments/assets/ad085046-8fc0-45fa-80c5-3799930e466e)
+
 
 ### 👤 Profile
 - Firebase Authentication (Email / Google)
@@ -113,3 +117,8 @@ Smooth transitions with AnimatedContent
 💬 Feedback system
 
 Video Presantions: https://youtu.be/S3wU45MVwGs
+
+![IMG-20251108-WA0007](https://github.com/user-attachments/assets/6de9f8f2-b615-49ff-a6a4-bd9e93bac5d8)
+![IMG-20251108-WA0008](https://github.com/user-attachments/assets/cb66659e-3e01-4830-8fe0-a6c37ea03416)
+![IMG-20251108-WA0005](https://github.com/user-attachments/assets/da12ac56-5ce6-40ac-9f77-1fc96e264a97)
+
